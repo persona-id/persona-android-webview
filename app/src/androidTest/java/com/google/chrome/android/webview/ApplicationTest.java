@@ -1,4 +1,4 @@
-package com.google.chrome.android.webrtcsample;
+package com.withpersona.webview;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
