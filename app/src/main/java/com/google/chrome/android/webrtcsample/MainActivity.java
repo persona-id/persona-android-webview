@@ -3,224 +3,153 @@ package com.google.chrome.android.webrtcsample;
 import android.annotation.TargetApi;
 import android.app.Activity;
 
-import android.app.ActionBar;
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.support.v4.widget.DrawerLayout;
 import android.webkit.CookieManager;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.PermissionRequest;
 import android.webkit.WebViewClient;
-import android.widget.ArrayAdapter;
-import android.widget.TextView;
+
+import java.util.HashMap;
 
 
-public class MainActivity extends Activity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+public class MainActivity extends Activity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
-
-    /**
-     * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
-     */
-    private NavigationDrawerFragment mNavigationDrawerFragment;
-
-    /**
-     * Used to store the last screen title. For use in {@link #restoreActionBar()}.
-     */
-    private CharSequence mTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mNavigationDrawerFragment = (NavigationDrawerFragment)
-                getFragmentManager().findFragmentById(R.id.navigation_drawer);
-        mTitle = getTitle();
+        final WebView personaWebView = (WebView) findViewById(R.id.fragment_main_webview);
 
-        // Set up the drawer.
-        mNavigationDrawerFragment.setUp(
-                R.id.navigation_drawer,
-                (DrawerLayout) findViewById(R.id.drawer_layout));
-    }
+        setUpWebViewDefaults(personaWebView);
 
-    @Override
-    public void onNavigationDrawerItemSelected(int position) {
-        // update the main content by replacing fragments
-        FragmentManager fragmentManager = getFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
-                .commit();
-    }
+        // Initialize Persona
+        HashMap<String, String> personaOptions = new HashMap<>();
+        personaOptions.put("is-webview", "true");
 
-    public void onSectionAttached(int number) {
+        personaOptions.put("blueprint-id", "blu_M1ivtd7uaiZQBESJvR4tN8Fu");
+        personaOptions.put("redirect-uri", "https://personademo.com");
+        personaOptions.put("baseUrl", "https://withpersona.com:3000/verify");
+        final Uri personaUrl = generatePersonaUrl(personaOptions);
 
-    }
+        personaWebView.loadUrl(personaUrl.toString());
 
-    public void restoreActionBar() {
-        ActionBar actionBar = getActionBar();
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-        actionBar.setDisplayShowTitleEnabled(true);
-        actionBar.setTitle(mTitle);
-    }
+        personaWebView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                Uri parsedUri = Uri.parse(url);
+                if (parsedUri.getScheme().equals("persona")) {
+                    String action = parsedUri.getHost();
+                    HashMap<String, String> linkData = parsePersonaUriData(parsedUri);
 
+                    if (action.equals("start")) {
+                        // User start an inquiry
+                        Log.d("Inquiry Id: ", linkData.get("inquiryId"));
+                        Log.d("Subject: ", linkData.get("subject"));
+                    } else if (action.equals("success")) {
+                        // User succeeded verification
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        if (!mNavigationDrawerFragment.isDrawerOpen()) {
-            // Only show items in the action bar relevant to this screen
-            // if the drawer is not showing. Otherwise, let the drawer
-            // decide what to show in the action bar.
-            getMenuInflater().inflate(R.menu.main, menu);
-            restoreActionBar();
-            return true;
-        }
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        private WebView mWebRTCWebView;
-
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            mWebRTCWebView = (WebView) rootView.findViewById(R.id.fragment_main_webview);
-
-            setUpWebViewDefaults(mWebRTCWebView);
-
-            mWebRTCWebView.loadUrl("https://apprtc-m.appspot.com/");
-
-            mWebRTCWebView.setWebChromeClient(new WebChromeClient() {
-
-                @Override
-                public void onPermissionRequest(final PermissionRequest request) {
-                    Log.d(TAG, "onPermissionRequest");
-                    getActivity().runOnUiThread(new Runnable() {
-                        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-                        @Override
-                        public void run() {
-                            if(request.getOrigin().toString().equals("https://apprtc-m.appspot.com/")) {
-                                request.grant(request.getResources());
-                            } else {
-                                request.deny();
-                            }
-                        }
-                    });
+                        // Reload Persona in the Webview
+                        // You will likely want to transition the view at this point.
+                        personaWebView.loadUrl(personaUrl.toString());
+                    }
+                    // Override URL loading
+                    return true;
+                } else if (parsedUri.getScheme().equals("https") ||
+                        parsedUri.getScheme().equals("http")) {
+                    // Open in browser - this is most likely external help links
+                    view.getContext().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+                    // Override URL loading
+                    return true;
+                } else {
+                    // Unknown case - do not override URL loading
+                    return false;
                 }
+            }
+        });
 
-            });
+        personaWebView.setWebChromeClient(new WebChromeClient() {
 
-            return rootView;
-        }
-
-        @Override
-        public void onStop() {
-            super.onStop();
-
-            /**
-             * When the application falls into the background we want to stop the media stream
-             * such that the camera is free to use by other apps.
-             */
-            mWebRTCWebView.evaluateJavascript("if(window.localStream){window.localStream.stop();}", null);
-        }
-
-        @Override
-        public void onAttach(Activity activity) {
-            super.onAttach(activity);
-            ((MainActivity) activity).onSectionAttached(
-                    getArguments().getInt(ARG_SECTION_NUMBER));
-        }
-
-        /**
-         * Convenience method to set some generic defaults for a
-         * given WebView
-         *
-         * @param webView
-         */
-        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-        private void setUpWebViewDefaults(WebView webView) {
-            WebSettings settings = webView.getSettings();
-
-            // Enable Javascript
-            settings.setJavaScriptEnabled(true);
-
-            // Use WideViewport and Zoom out if there is no viewport defined
-            settings.setUseWideViewPort(true);
-            settings.setLoadWithOverviewMode(true);
-
-            // Enable pinch to zoom without the zoom buttons
-            settings.setBuiltInZoomControls(true);
-
-            // Allow use of Local Storage
-            settings.setDomStorageEnabled(true);
-
-            if(Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB) {
-                // Hide the zoom controls for HONEYCOMB+
-                settings.setDisplayZoomControls(false);
+            @Override
+            public void onPermissionRequest(final PermissionRequest request) {
+                Log.d(TAG, "onPermissionRequest");
+                runOnUiThread(new Runnable() {
+                    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+                    @Override
+                    public void run() {
+                        if(request.getOrigin().toString().equals("https://apprtc-m.appspot.com/")) {
+                            request.grant(request.getResources());
+                        } else {
+                            request.deny();
+                        }
+                    }
+                });
             }
 
-            // Enable remote debugging via chrome://inspect
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                WebView.setWebContentsDebuggingEnabled(true);
-            }
-
-            webView.setWebViewClient(new WebViewClient());
-
-            // AppRTC requires third party cookies to work
-            CookieManager cookieManager = CookieManager.getInstance();
-            cookieManager.setAcceptThirdPartyCookies(mWebRTCWebView, true);
-        }
+        });
     }
 
+    private void setUpWebViewDefaults(WebView webView) {
+        WebSettings settings = webView.getSettings();
+
+        // Enable Javascript
+        settings.setJavaScriptEnabled(true);
+
+        // Use WideViewport and Zoom out if there is no viewport defined
+        settings.setUseWideViewPort(true);
+        settings.setLoadWithOverviewMode(true);
+
+        // Enable pinch to zoom without the zoom buttons
+        settings.setBuiltInZoomControls(true);
+
+        // Allow use of Local Storage
+        settings.setDomStorageEnabled(true);
+
+        if(Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB) {
+            // Hide the zoom controls for HONEYCOMB+
+            settings.setDisplayZoomControls(false);
+        }
+
+        // Enable remote debugging via chrome://inspect
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            WebView.setWebContentsDebuggingEnabled(true);
+        }
+
+        // AppRTC requires third party cookies to work
+        CookieManager cookieManager = CookieManager.getInstance();
+        cookieManager.setAcceptThirdPartyCookies(webView, true);
+    }
+
+    // Generate a Persona initialization URL based on a set of configuration options
+    public Uri generatePersonaUrl(HashMap<String,String> personaOptions) {
+        Uri.Builder builder = Uri.parse(personaOptions.get("baseUrl"))
+                .buildUpon()
+                .appendQueryParameter("isWebview", "true")
+                .appendQueryParameter("isMobile", "true");
+        for (String key : personaOptions.keySet()) {
+            if (!key.equals("baseUrl")) {
+                builder.appendQueryParameter(key, personaOptions.get(key));
+            }
+        }
+        return builder.build();
+    }
+
+    // Parse a Persona redirect URL querystring into a HashMap for easy manipulation and access
+    public HashMap<String,String> parsePersonaUriData(Uri personaUri) {
+        HashMap<String,String> personaData = new HashMap<String,String>();
+        for(String key : personaUri.getQueryParameterNames()) {
+            personaData.put(key, personaUri.getQueryParameter(key));
+        }
+        return personaData;
+    }
 }
