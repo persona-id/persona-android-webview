@@ -1,0 +1,13 @@
+# Ignore local gradle
+.gradle
+
+# Ignore local SDK properties
+local.properties
+
+# Ignore project files
+.idea/
+.DS_Store
+
+# Ignore built files
+build
+
