@@ -59,18 +59,16 @@ public class MainActivity extends Activity {
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 Uri parsedUri = Uri.parse(url);
                 if (parsedUri.getAuthority().equals("personademo.com")) {
-                    String action = parsedUri.getHost();
                     HashMap<String, String> personaData = parsePersonaUriData(parsedUri);
 
-                    if (action.equals("success")) {
-                        // User succeeded verification
-                        Log.d("Inquiry Id: ", personaData.get("inquiry-id"));
-                        Log.d("Subject: ", personaData.get("subject"));
+                    // User succeeded verification
+                    Log.d("Inquiry Id: ", personaData.get("inquiry-id"));
+                    Log.d("Subject: ", personaData.get("subject"));
 
-                        // Reload Persona in the Webview
-                        // You will likely want to transition the view at this point.
-                        webView.loadUrl(personaUrl.toString());
-                    }
+                    // Reload Persona in the Webview
+                    // You will likely want to transition the view at this point.
+                    webView.loadUrl(personaUrl.toString());
+
                     // Override URL loading
                     return true;
                 } else if (parsedUri.getScheme().equals("https") ||
