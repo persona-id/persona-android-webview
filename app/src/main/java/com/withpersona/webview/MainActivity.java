@@ -2,7 +2,6 @@ package com.withpersona.webview;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -46,7 +45,7 @@ public class MainActivity extends Activity {
         // Initialize Persona
         HashMap<String, String> personaOptions = new HashMap<>();
 
-        personaOptions.put("blueprint-id", "blu_MvKhz42SXzr8akDa7jZJ1Esv");
+        personaOptions.put("blueprint-id", "blu_5qdcx1VbgsLC2DRhLwzCBXkz");
         personaOptions.put("redirect-uri", "https://personademo.com");
         personaOptions.put("baseUrl", "https://withpersona.com/verify");
         final Uri personaUrl = generatePersonaUrl(personaOptions);
@@ -55,6 +54,7 @@ public class MainActivity extends Activity {
         webView.loadUrl(personaUrl.toString());
 
         webView.setWebViewClient(new WebViewClient() {
+
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 Uri parsedUri = Uri.parse(url);
@@ -85,6 +85,7 @@ public class MainActivity extends Activity {
         });
 
         webView.setWebChromeClient(new WebChromeClient() {
+
             @Override
             public void onPermissionRequest(final PermissionRequest request) {
                 Log.d(TAG, "onPermissionRequest");
@@ -211,6 +212,12 @@ public class MainActivity extends Activity {
 
         // Enable Javascript
         settings.setJavaScriptEnabled(true);
+
+        // This is necessary to re-enable autoplay on camera videos
+        int SDK_INT = android.os.Build.VERSION.SDK_INT;
+        if (SDK_INT > 16) {
+            settings.setMediaPlaybackRequiresUserGesture(false);
+        }
 
         // Use WideViewport and Zoom out if there is no viewport defined
         settings.setUseWideViewPort(true);
