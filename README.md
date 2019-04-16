@@ -11,3 +11,4 @@ An example application using Persona in an Android WebView.
 
 The module provides a client for the Persona hosted flow in an Android WebView.  For complete information about the API, head to the [docs][0].
 
+[0]: https://documentation.withpersona.com
