@@ -45,8 +45,8 @@ public class MainActivity extends Activity {
         // Initialize Persona
         HashMap<String, String> personaOptions = new HashMap<>();
 
-        personaOptions.put("blueprint-id", "blu_5qdcx1VbgsLC2DRhLwzCBXkz");
-        personaOptions.put("redirect-uri", "https://personademo.com");
+        personaOptions.put("blueprint-id", "blu_WMmFNiixxX1doLfj5KDi6dQq");
+        personaOptions.put("redirect-uri", "https://withpersona.com");
         personaOptions.put("baseUrl", "https://withpersona.com/verify");
         final Uri personaUrl = generatePersonaUrl(personaOptions);
         Log.d("Loading URL: ", personaUrl.toString());
