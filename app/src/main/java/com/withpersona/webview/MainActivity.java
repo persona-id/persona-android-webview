@@ -1,27 +1,23 @@
 package com.withpersona.webview;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.webkit.CookieManager;
+import android.webkit.PermissionRequest;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.webkit.PermissionRequest;
 import android.webkit.WebViewClient;
-
+import android.widget.Toast;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 
 
 public class MainActivity extends Activity {
@@ -42,15 +38,14 @@ public class MainActivity extends Activity {
 
         setUpWebViewDefaults(webView);
 
-        // Initialize Persona
-        HashMap<String, String> personaOptions = new HashMap<>();
-
-        personaOptions.put("template-id", "tmpl_JAZjHuAT738Q63BdgCuEJQre");
-        personaOptions.put("environment", "sandbox");
-        personaOptions.put("redirect-uri", "https://withpersona.com");
-        personaOptions.put("baseUrl", "https://withpersona.com/verify");
-        final Uri personaUrl = generatePersonaUrl(personaOptions);
-        Log.d("Loading URL: ", personaUrl.toString());
+        final Uri personaUrl = new Uri.Builder()
+            .scheme("https")
+            .encodedAuthority("withpersona.com")
+            .path("verify")
+            .appendQueryParameter("is-webview", "true")
+            .appendQueryParameter("template-id", "tmpl_JAZjHuAT738Q63BdgCuEJQre")
+            .appendQueryParameter("environment", "sandbox")
+            .build();
 
         webView.loadUrl(personaUrl.toString());
 
@@ -59,12 +54,14 @@ public class MainActivity extends Activity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 Uri parsedUri = Uri.parse(url);
-                if (parsedUri.getAuthority().equals("personademo.com")) {
-                    HashMap<String, String> personaData = parsePersonaUriData(parsedUri);
+                if (parsedUri.getAuthority().equals("personacallback")) {
 
                     // User succeeded verification
-                    Log.d("Inquiry Id: ", personaData.get("inquiry-id"));
-                    Log.d("Subject: ", personaData.get("subject"));
+                    String inquiryID = parsedUri.getQueryParameter("inquiry-id");
+                    inquiryID = inquiryID == null ? "none" : inquiryID;
+                    Toast.makeText(webView.getContext(), "The inquiry ID is " + inquiryID,
+                        Toast.LENGTH_SHORT)
+                        .show();
 
                     // Reload Persona in the Webview
                     // You will likely want to transition the view at this point.
@@ -89,9 +86,7 @@ public class MainActivity extends Activity {
 
             @Override
             public void onPermissionRequest(final PermissionRequest request) {
-                Log.d(TAG, "onPermissionRequest");
                 runOnUiThread(new Runnable() {
-                    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
                     @Override
                     public void run() {
                         if(request.getOrigin().toString().equals("https://withpersona.com/")) {
@@ -122,7 +117,6 @@ public class MainActivity extends Activity {
                         takePictureIntent.putExtra("PhotoPath", cameraPhotoPath);
                     } catch (IOException ex) {
                         // Error occurred while creating the File
-                        Log.e(TAG, "Unable to create Image File", ex);
                     }
 
                     // Continue only if the File was successfully created
@@ -184,14 +178,12 @@ public class MainActivity extends Activity {
 
         filePathCallback.onReceiveValue(results);
         filePathCallback = null;
-        return;
     }
 
     /**
      * More info this method can be found at
      * http://developer.android.com/training/camera/photobasics.html
      *
-     * @return
      * @throws IOException
      */
     private File createImageFile() throws IOException {
@@ -215,10 +207,7 @@ public class MainActivity extends Activity {
         settings.setJavaScriptEnabled(true);
 
         // This is necessary to re-enable autoplay on camera videos
-        int SDK_INT = android.os.Build.VERSION.SDK_INT;
-        if (SDK_INT > 16) {
-            settings.setMediaPlaybackRequiresUserGesture(false);
-        }
+        settings.setMediaPlaybackRequiresUserGesture(false);
 
         // Use WideViewport and Zoom out if there is no viewport defined
         settings.setUseWideViewPort(true);
@@ -230,40 +219,14 @@ public class MainActivity extends Activity {
         // Allow use of Local Storage
         settings.setDomStorageEnabled(true);
 
-        if(Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB) {
-            // Hide the zoom controls for HONEYCOMB+
-            settings.setDisplayZoomControls(false);
-        }
+        // Hide the zoom controls for HONEYCOMB+
+        settings.setDisplayZoomControls(false);
 
         // Enable remote debugging via chrome://inspect
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            WebView.setWebContentsDebuggingEnabled(true);
-        }
+        WebView.setWebContentsDebuggingEnabled(true);
 
         // AppRTC requires third party cookies to work
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptThirdPartyCookies(webView, true);
-    }
-
-    // Generate a Persona initialization URL based on a set of configuration options
-    public Uri generatePersonaUrl(HashMap<String,String> personaOptions) {
-        Uri.Builder builder = Uri.parse(personaOptions.get("baseUrl"))
-                .buildUpon()
-                .appendQueryParameter("is-webview", "true");
-        for (String key : personaOptions.keySet()) {
-            if (!key.equals("baseUrl")) {
-                builder.appendQueryParameter(key, personaOptions.get(key));
-            }
-        }
-        return builder.build();
-    }
-
-    // Parse a Persona redirect URL querystring into a HashMap for easy manipulation and access
-    public HashMap<String,String> parsePersonaUriData(Uri personaUri) {
-        HashMap<String,String> personaData = new HashMap<String,String>();
-        for(String key : personaUri.getQueryParameterNames()) {
-            personaData.put(key, personaUri.getQueryParameter(key));
-        }
-        return personaData;
     }
 }
