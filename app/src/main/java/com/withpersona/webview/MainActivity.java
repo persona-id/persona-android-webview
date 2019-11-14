@@ -1,7 +1,9 @@
 package com.withpersona.webview;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -14,18 +16,22 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
 
   public static final int INPUT_FILE_REQUEST_CODE = 1;
-  private static final String TAG = MainActivity.class.getSimpleName();
+  private static final int CAMERA_PERMISSION_REQUEST = 1111;
   private WebView webView;
   private ValueCallback<Uri[]> filePathCallback;
   private String cameraPhotoPath;
+  private PermissionRequest cameraPermission;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -84,16 +90,13 @@ public class MainActivity extends Activity {
 
       @Override
       public void onPermissionRequest(final PermissionRequest request) {
-        runOnUiThread(new Runnable() {
-          @Override
-          public void run() {
-            if (request.getOrigin().toString().equals("https://withpersona.com/")) {
-              request.grant(request.getResources());
-            } else {
-              request.deny();
-            }
-          }
-        });
+        if (request.getOrigin().toString().equals("https://withpersona.com/")) {
+          ActivityCompat.requestPermissions(MainActivity.this,
+              new String[] { Manifest.permission.CAMERA }, CAMERA_PERMISSION_REQUEST);
+          cameraPermission = request;
+        } else {
+          request.deny();
+        }
       }
 
       @Override
@@ -148,6 +151,19 @@ public class MainActivity extends Activity {
         return true;
       }
     });
+  }
+
+  @Override
+  public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+      @NonNull int[] grantResults) {
+    super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    if (requestCode == CAMERA_PERMISSION_REQUEST) {
+      if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        cameraPermission.grant(cameraPermission.getResources());
+      } else {
+        cameraPermission.deny();
+      }
+    }
   }
 
   @Override
