@@ -1,6 +1,7 @@
 package com.withpersona.webview;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -23,6 +24,8 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -58,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
       @Override
       public boolean shouldOverrideUrlLoading(WebView view, String url) {
         Uri parsedUri = Uri.parse(url);
-        if (parsedUri.getAuthority().equals("personacallback")) {
+        if (Objects.equals(parsedUri.getAuthority(), "personacallback")) {
 
           // User succeeded verification
           String inquiryID = parsedUri.getQueryParameter("inquiry-id");
@@ -73,8 +76,8 @@ public class MainActivity extends AppCompatActivity {
 
           // Override URL loading
           return true;
-        } else if (parsedUri.getScheme().equals("https") ||
-            parsedUri.getScheme().equals("http")) {
+        } else if (Objects.equals(parsedUri.getScheme(), "https") ||
+            Objects.equals(parsedUri.getScheme(), "http")) {
           // Open in browser - this is most likely external help links
           view.getContext().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
           // Override URL loading
@@ -113,9 +116,13 @@ public class MainActivity extends AppCompatActivity {
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
           // Create the File where the photo should go
           File photoFile = null;
+          // Create an image file name
+          String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
+          String imageFileName = "JPEG_" + timeStamp + "_";
+          File storageDir =
+              Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
           try {
-            photoFile = createImageFile();
-            takePictureIntent.putExtra("PhotoPath", cameraPhotoPath);
+            photoFile = File.createTempFile(imageFileName, ".jpg", storageDir);
           } catch (IOException ex) {
             // Error occurred while creating the File
           }
@@ -194,27 +201,7 @@ public class MainActivity extends AppCompatActivity {
     filePathCallback = null;
   }
 
-  /**
-   * More info this method can be found at
-   * http://developer.android.com/training/camera/photobasics.html
-   *
-   * @throws IOException
-   */
-  private File createImageFile() throws IOException {
-    // Create an image file name
-    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-    String imageFileName = "JPEG_" + timeStamp + "_";
-    File storageDir = Environment.getExternalStoragePublicDirectory(
-        Environment.DIRECTORY_PICTURES);
-    File imageFile = File.createTempFile(
-        imageFileName,  /* prefix */
-        ".jpg",         /* suffix */
-        storageDir      /* directory */
-    );
-    return imageFile;
-  }
-
-  private void setUpWebViewDefaults(WebView webView) {
+  @SuppressLint("SetJavaScriptEnabled") private void setUpWebViewDefaults(WebView webView) {
     WebSettings settings = webView.getSettings();
 
     // Enable Javascript
