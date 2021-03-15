@@ -1,7 +1,6 @@
 package com.withpersona.webview;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -9,7 +8,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.webkit.CookieManager;
 import android.webkit.PermissionRequest;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -41,9 +39,11 @@ public class MainActivity extends AppCompatActivity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
-    webView = findViewById(R.id.fragment_main_webview);
+    webView = findViewById(R.id.webview);
 
-    setUpWebViewDefaults(webView);
+    WebSettings settings = webView.getSettings();
+    settings.setJavaScriptEnabled(true);
+    settings.setMediaPlaybackRequiresUserGesture(false);
 
     final Uri personaUrl = new Uri.Builder()
         .scheme("https")
@@ -65,8 +65,7 @@ public class MainActivity extends AppCompatActivity {
 
           // User succeeded verification
           String inquiryID = parsedUri.getQueryParameter("inquiry-id");
-          inquiryID = inquiryID == null ? "none" : inquiryID;
-          Toast.makeText(webView.getContext(), "The inquiry ID is " + inquiryID,
+          Toast.makeText(MainActivity.this, "The inquiry ID is " + inquiryID,
               Toast.LENGTH_SHORT)
               .show();
 
@@ -199,35 +198,5 @@ public class MainActivity extends AppCompatActivity {
 
     filePathCallback.onReceiveValue(results);
     filePathCallback = null;
-  }
-
-  @SuppressLint("SetJavaScriptEnabled") private void setUpWebViewDefaults(WebView webView) {
-    WebSettings settings = webView.getSettings();
-
-    // Enable Javascript
-    settings.setJavaScriptEnabled(true);
-
-    // This is necessary to re-enable autoplay on camera videos
-    settings.setMediaPlaybackRequiresUserGesture(false);
-
-    // Use WideViewport and Zoom out if there is no viewport defined
-    settings.setUseWideViewPort(true);
-    settings.setLoadWithOverviewMode(true);
-
-    // Disable pinch to zoom without the zoom buttons
-    settings.setBuiltInZoomControls(false);
-
-    // Allow use of Local Storage
-    settings.setDomStorageEnabled(true);
-
-    // Hide the zoom controls for HONEYCOMB+
-    settings.setDisplayZoomControls(false);
-
-    // Enable remote debugging via chrome://inspect
-    WebView.setWebContentsDebuggingEnabled(true);
-
-    // AppRTC requires third party cookies to work
-    CookieManager cookieManager = CookieManager.getInstance();
-    cookieManager.setAcceptThirdPartyCookies(webView, true);
   }
 }
