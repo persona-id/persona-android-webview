@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
         .encodedAuthority("withpersona.com")
         .path("verify")
         .appendQueryParameter("is-webview", "true")
-        .appendQueryParameter("template-id", "tmpl_JAZjHuAT738Q63BdgCuEJQre")
+        .appendQueryParameter("inquiry-template-id", "itmpl_Ygs16MKTkA6obnF8C3Rb17dm")
         .appendQueryParameter("environment", "sandbox")
         .build();
 
