@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
 
     final Uri personaUrl = new Uri.Builder()
         .scheme("https")
-        .encodedAuthority("withpersona.com")
+        .encodedAuthority("inquiry.withpersona.com")
         .path("verify")
         .appendQueryParameter("is-webview", "true")
         .appendQueryParameter("inquiry-template-id", "itmpl_Ygs16MKTkA6obnF8C3Rb17dm")
