@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
 
       @Override
       public void onPermissionRequest(final PermissionRequest request) {
-        if (request.getOrigin().toString().equals("https://withpersona.com/")) {
+        if (request.getOrigin().toString().equals("https://inquiry.withpersona.com/")) {
           ActivityCompat.requestPermissions(MainActivity.this,
               new String[] { Manifest.permission.CAMERA }, CAMERA_PERMISSION_REQUEST);
           cameraPermission = request;
