@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     webView = findViewById(R.id.webview);
 
     WebSettings settings = webView.getSettings();
+    settings.setDomStorageEnabled(true);
     settings.setJavaScriptEnabled(true);
     settings.setMediaPlaybackRequiresUserGesture(false);
 
