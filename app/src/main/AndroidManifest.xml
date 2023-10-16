@@ -1,17 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.withpersona.webview">
+    xmlns:tools="http://schemas.android.com/tools">
+
+  <uses-feature android:name="android.hardware.camera" android:required="false" />
 
   <uses-permission android:name="android.permission.INTERNET" />
   <uses-permission android:name="android.permission.CAMERA" />
+
+  <!-- Microphone permissions are not usually required, except when using a template that records video. -->
+  <!--  <uses-permission android:name="android.permission.RECORD_AUDIO" />-->
+  <!--  <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />-->
 
   <application
       android:allowBackup="false"
       android:icon="@drawable/ic_launcher"
       android:label="@string/app_name"
       android:theme="@style/AppTheme"
-      tools:ignore="GoogleAppIndexingWarning">
+      tools:ignore="GoogleAppIndexingWarning"
+      android:hardwareAccelerated="true">
     <activity
         android:name="com.withpersona.webview.MainActivity"
         android:exported="true"
